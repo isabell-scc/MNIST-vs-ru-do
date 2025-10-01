@@ -5,57 +5,9 @@ import matplotlib.pyplot as plt
 from tensorflow import keras
 from PIL import Image
 import matplotlib.cm as cm
-
-
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-
-def plot_gradcam(model, img, class_idx, layer_name, title='Grad-CAM'):
-    """
-    Gera e plota o Grad-CAM para uma imagem e classe específica.
-
-    Args:
-        model: Modelo Keras treinado.
-        img: Imagem de entrada com shape (1, H, W, C), já pré-processada.
-        class_idx: Índice da classe alvo para gerar o Grad-CAM.
-        layer_name: Nome da camada convolucional usada para o Grad-CAM.
-        title: Título opcional do gráfico.
-    """
-
-    # Modelo que retorna as ativações da camada e a predição
-    grad_model = tf.keras.models.Model(
-        [model.inputs], [model.get_layer(layer_name).output, model.output]
-    )
-
-    # Calcula o gradiente da classe com relação à camada
-    with tf.GradientTape() as tape:
-        inputs = tf.cast(img, tf.float32)
-        conv_outputs, predictions = grad_model(inputs)
-        loss = predictions[:, class_idx]  # perda da classe alvo
-
-    # Gradientes da camada em relação à perda
-    grads = tape.gradient(loss, conv_outputs)
-
-    # Gradiente médio por canal (global average pooling)
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-
-    # Remove batch dimension
-    conv_outputs = conv_outputs[0]
-
-    # Pondera os canais pela média dos gradientes
-    heatmap = tf.reduce_sum(tf.multiply(pooled_grads, conv_outputs), axis=-1)
-
-    # ReLU (só ativações positivas) e normalização
-    heatmap = np.maximum(heatmap, 0)
-    heatmap /= (np.max(heatmap) + 1e-8)
-
-    # Exibe o heatmap
-    plt.imshow(heatmap, cmap='jet')
-    plt.axis('off')
-    plt.title(title)
-    plt.colorbar()
-    plt.show()
 
 
 def get_saliency_map(model, image, class_idx):
