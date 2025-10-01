@@ -1,0 +1,10 @@
+tensorflow
+tensorflow-datasets
+streamlit
+gradio
+scikit-learn
+matplotlib
+numpy
+pandas
+os
+seaborn
